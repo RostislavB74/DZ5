@@ -1,77 +1,98 @@
 import asyncio
 import platform
 import logging
-
+import json
+import pathlib
 import aiohttp
+import sys
+from datetime import datetime
 
-urls = ['https://www.google.com.ua/', 'https://duckduckgo.com/', 'https://docs.aiohttp.org/',
-        'https://goit.global/ua/asdf', 'https://mail.ru']
+TODAY = datetime.now()
+BASE_DIR = pathlib.Path()
 
 
-async def main():
+# urls = 'https://api.privatbank.ua/p24api/pubinfo?json&date=15.09.2023'
+# urls = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'
+url = 'https://api.privatbank.ua/p24api/exchange_rates?date=02.09.2023'
+# urls = 'https://api.privatbank.ua/p24api/exchange_rates?json&date=16.09.2023'
+
+
+def get_date_list(days):
+    date_list = []
+    for dt in days:
+        dt_days = datetime.now() - dt
+        date_list.append(dt_days)
+        return date_list
+        #     def get_users(uids: List[int]) -> Iterable[Awaitable]:
+#     return [get_user_async(i) for i in uids]
+
+
+# async def main(users: Iterable[Awaitable]):
+#     return await asyncio.gather(*users)
+
+
+# if __name__ == '__main__':
+#     uids = [1, 2, 3]
+#     start = time()
+#     r = asyncio.run(main(get_users(uids)))
+#     print(r)
+#     print(time() - start)
+
+async def request_privat():
+    url = 'https://api.privatbank.ua/p24api/pubinfo?json&date='
+    url_request = url+date
     async with aiohttp.ClientSession() as session:
-        for url in urls:
-            logging.info(f'Starting: {url}')
+        async with session.get(url_request) as response:
+            logging.info(f'Starting: {url_request}')
             try:
-                async with session.get(url) as response:
+                async with session.get(url_request) as response:
                     if response.status == 200:
-                        html = await response.text()
-                        print(html[:100])
-                    else:
-                        logging.error(
-                            f"Error status {response.status} for {url}")
+                        print("Status:", response.status)
+                        print("Content-type:",
+                              response.headers['content-type'])
+                        print('Cookies: ', response.cookies)
+                        print(response.ok)
+                        result = await response.json()
+                        with open(BASE_DIR.joinpath('./data.json'), 'w', encoding='utf-8') as fd:
+                            json.dump(result, fd,
+                                      ensure_ascii=False, indent=5)
+                            fd.write(",\n")
+                        return result
+                    logging.error(f"Error status {response.status} for {urls}")
+
             except aiohttp.ClientConnectorError as e:
-                logging.error(f"Connection error {url}: {e}")
+                logging.error(f"Connection error {urls}: {e}")
 
-
-async def custom_main(url):
-    session = aiohttp.ClientSession()
-    logging.info(f'Starting: {url}')
-    try:
-        response = await session.get(url)
-        if response.status == 200:
-            html = await response.text()
             await session.close()
-            return html[:150]
-        else:
-            logging.error(f"Error status {response.status} for {url}")
-    except aiohttp.ClientConnectorError as e:
-        logging.error(f"Connection error {url}: {e}")
-    await session.close()
 
 
-async def run():
-    r = []
-    for url in urls:
-        r.append(custom_main(url))
+def main():
+    try:
+        days = datetime.day(sys.argv[1])
+        print(type(days))
+        if days <= 10:
+            result = get_date_list(days)
 
-    result = await asyncio.gather(*r)
+    except ValueError:
+        sys.exit(1)
     return result
 
 
-async def request(url):
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    r = await response.json()
-                    return r
-                # logging.error(f"Error status {response.status} for {url}")
-        except aiohttp.ClientConnectorError as e:
-            logging.error(f"Connection error {url}: {e}")
-        return None
-
-
-async def get_exchange():
-    res = await request('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5')
-    return res
-
-
 if __name__ == "__main__":
-    if platform.system() == 'Windows':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    # asyncio.run(main())
-    # r = asyncio.run(run())
-    # print(r)
-    r = asyncio.run(get_exchange())
-    print(r)
+    print(main())
+
+    # if platform.system() == 'Windows':
+    #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    # r = asyncio.run(main())
+    # logging.basicConfig(level=logging.INFO,
+    #                     format="%(threadName)s %(message)s")
+    # STORAGE_DIR = pathlib.Path().joinpath('.')
+    # FILE_STORAGE = STORAGE_DIR / 'data.json'
+    # if not FILE_STORAGE.exists():
+    #     with open(FILE_STORAGE, 'w', encoding='utf-8') as fd:
+    #         json.dump({}, fd, ensure_ascii=False, indent=5)
+# api_client = ApiClient(RequestConnection(requests))
+
+#     data = api_client.get_data(
+#         'https://api.privatbank.ua/p24api/pubinfo?exchange&coursid=5')
+#     pretty_view(data_adapter(data))
