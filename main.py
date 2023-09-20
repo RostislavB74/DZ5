@@ -5,9 +5,10 @@ import json
 import pathlib
 import aiohttp
 import sys
-from datetime import datetime
+from datetime import date
+from datetime import time, timedelta
 
-TODAY = datetime.now()
+TODAY = date.today()
 BASE_DIR = pathlib.Path()
 
 
@@ -18,12 +19,15 @@ url = 'https://api.privatbank.ua/p24api/exchange_rates?date=02.09.2023'
 
 
 def get_date_list(days):
+
     date_list = []
-    for dt in days:
-        dt_days = datetime.now() - dt
-        date_list.append(dt_days)
-        return date_list
-        #     def get_users(uids: List[int]) -> Iterable[Awaitable]:
+    for d in range(days):
+        dt_days = date.today() - timedelta(d)
+        dt = f"{dt_days:%d.%m.%Y}"
+        date_list.append(dt)
+
+    return date_list
+    #     def get_users(uids: List[int]) -> Iterable[Awaitable]:
 #     return [get_user_async(i) for i in uids]
 
 
@@ -67,12 +71,13 @@ async def request_privat():
 
 
 def main():
+    # print(sys.argv[1])
     try:
-        days = datetime.day(sys.argv[1])
-        print(type(days))
+        days = int(sys.argv[1])
         if days <= 10:
             result = get_date_list(days)
-
+        else:
+            return 'You can use maximum only 10 days'
     except ValueError:
         sys.exit(1)
     return result
