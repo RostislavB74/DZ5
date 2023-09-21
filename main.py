@@ -14,7 +14,7 @@ BASE_DIR = pathlib.Path()
 
 # urls = 'https://api.privatbank.ua/p24api/pubinfo?json&date=15.09.2023'
 # urls = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'
-url = 'https://api.privatbank.ua/p24api/exchange_rates?date=02.09.2023'
+# url = 'https://api.privatbank.ua/p24api/exchange_rates?date=02.09.2023'
 # urls = 'https://api.privatbank.ua/p24api/exchange_rates?json&date=16.09.2023'
 
 
@@ -42,60 +42,65 @@ def get_date_list(days):
 #     print(r)
 #     print(time() - start)
 
-async def request_privat():
+async def request_privat(date_list):
     url = 'https://api.privatbank.ua/p24api/pubinfo?json&date='
-    url_request = url+date
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url_request) as response:
-            logging.info(f'Starting: {url_request}')
-            try:
-                async with session.get(url_request) as response:
-                    if response.status == 200:
-                        print("Status:", response.status)
-                        print("Content-type:",
-                              response.headers['content-type'])
-                        print('Cookies: ', response.cookies)
-                        print(response.ok)
-                        result = await response.json()
-                        with open(BASE_DIR.joinpath('./data.json'), 'w', encoding='utf-8') as fd:
-                            json.dump(result, fd,
-                                      ensure_ascii=False, indent=5)
-                            fd.write(",\n")
-                        return result
-                    logging.error(f"Error status {response.status} for {urls}")
 
-            except aiohttp.ClientConnectorError as e:
-                logging.error(f"Connection error {urls}: {e}")
+    for dt in date_list:
+        url_request = url+dt
+        # print(url_request)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url_request) as response:
+                logging.info(f'Starting: {url_request}')
+                try:
+                    async with session.get(url_request) as response:
+                        if response.status == 200:
+                            print("Status:", response.status)
+                            print("Content-type:",
+                                  response.headers['content-type'])
+                            print('Cookies: ', response.cookies)
+                            print(response.ok)
+                            result = await response.json()
+                            result_with_date_key = {dt: result}
+                            with open(BASE_DIR.joinpath('./data.json'), 'a', encoding='utf-8') as fd:
+                                json.dump(result_with_date_key, fd,
+                                          ensure_ascii=False, indent=5)
+                                fd.write(",\n")
 
-            await session.close()
+                        logging.error(
+                            f"Error status {response.status} for {url_request}")
+
+                except aiohttp.ClientConnectorError as e:
+                    logging.error(f"Connection error {url_request}: {e}")
+    return result
+    await session.close()
 
 
-def main():
-    # print(sys.argv[1])
+async def main():
     try:
         days = int(sys.argv[1])
         if days <= 10:
-            result = get_date_list(days)
+            dt_list = get_date_list(days)
+            return await asyncio.gather(request_privat(dt_list))
+
         else:
             return 'You can use maximum only 10 days'
     except ValueError:
         sys.exit(1)
-    return result
 
 
 if __name__ == "__main__":
-    print(main())
+    # print(main())
 
-    # if platform.system() == 'Windows':
-    #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    # r = asyncio.run(main())
-    # logging.basicConfig(level=logging.INFO,
-    #                     format="%(threadName)s %(message)s")
-    # STORAGE_DIR = pathlib.Path().joinpath('.')
-    # FILE_STORAGE = STORAGE_DIR / 'data.json'
-    # if not FILE_STORAGE.exists():
-    #     with open(FILE_STORAGE, 'w', encoding='utf-8') as fd:
-    #         json.dump({}, fd, ensure_ascii=False, indent=5)
+    if platform.system() == 'Windows':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    r = asyncio.run(main())
+    logging.basicConfig(level=logging.INFO,
+                        format="%(threadName)s %(message)s")
+    STORAGE_DIR = pathlib.Path().joinpath('.')
+    FILE_STORAGE = STORAGE_DIR / 'data.json'
+    if not FILE_STORAGE.exists():
+        with open(FILE_STORAGE, 'w', encoding='utf-8') as fd:
+            json.dump({}, fd, ensure_ascii=False, indent=5)
 # api_client = ApiClient(RequestConnection(requests))
 
 #     data = api_client.get_data(
