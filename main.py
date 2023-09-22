@@ -43,37 +43,37 @@ def get_date_list(days):
 #     print(time() - start)
 
 async def request_privat(date_list):
-    url = 'https://api.privatbank.ua/p24api/pubinfo?json&date='
+    url = 'https://api.privatbank.ua/p24api/exchange_rates?json&date='
 
-    for dt in date_list:
-        url_request = url+dt
-        # print(url_request)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url_request) as response:
-                logging.info(f'Starting: {url_request}')
-                try:
-                    async with session.get(url_request) as response:
-                        if response.status == 200:
-                            print("Status:", response.status)
-                            print("Content-type:",
-                                  response.headers['content-type'])
-                            print('Cookies: ', response.cookies)
-                            print(response.ok)
-                            result = await response.json()
-                            result_with_date_key = {dt: result}
-                            with open(BASE_DIR.joinpath('./data.json'), 'a', encoding='utf-8') as fd:
-                                json.dump(result_with_date_key, fd,
-                                          ensure_ascii=False, indent=5)
-                                fd.write(",\n")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url_request) as response:
+            logging.info(f'Starting: {url_request}')
+            try:
+                async with session.get(url_request) as response:
+                    if response.status == 200:
+                        print("Status:", response.status)
+                        print("Content-type:",
+                                response.headers['content-type'])
+                        print('Cookies: ', response.cookies)
+                        print(response.ok)
+                        result = await response.json()
+                        result_with_date_key = {dt: result}
+                        with open(BASE_DIR.joinpath('./data.json'), 'w', encoding='utf-8') as fd:
+                            json.dump(result_with_date_key, fd,
+                                        ensure_ascii=False, indent=5)
+                            fd.write(",\n")
 
-                        logging.error(
-                            f"Error status {response.status} for {url_request}")
+                    logging.error(
+                        f"Error status {response.status} for {url_request}")
 
-                except aiohttp.ClientConnectorError as e:
-                    logging.error(f"Connection error {url_request}: {e}")
-    return result
+            except aiohttp.ClientConnectorError as e:
+                logging.error(f"Connection error {url_request}: {e}")
     await session.close()
+    return result
 
+for dt in date_list:
+        url_request = url+dt
+        print(url_request)
 
 async def main():
     try:
