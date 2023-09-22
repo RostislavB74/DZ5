@@ -43,25 +43,6 @@ def get_date_list(days):
 #     print(time() - start)
 
 async def request_privat(date_list):
-<<<<<<< HEAD
-    url = 'https://api.privatbank.ua/p24api/exchange&coursid=5'
-
-    for dt in date_list:
-        url_request = url+dt
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url_request) as response:
-                logging.info(f'Starting: {url_request}')
-                try:
-                    await asyncio.sleep(0.5)
-                    async with session.get(url_request) as response:
-                        if response.status == 200:
-                            print("Status:", response.status)
-                            print("Content-type:",
-                                  response.headers['content-type'])
-                            print('Cookies: ', response.cookies)
-                            print(response.ok)
-=======
     url = 'https://api.privatbank.ua/p24api/exchange_rates?json&date='
 
     async with aiohttp.ClientSession() as session:
@@ -72,38 +53,28 @@ async def request_privat(date_list):
                     if response.status == 200:
                         print("Status:", response.status)
                         print("Content-type:",
-                                response.headers['content-type'])
+                              response.headers['content-type'])
                         print('Cookies: ', response.cookies)
                         print(response.ok)
->>>>>>> e3e301db02e067725daebbf24f21b6765b1e7127
                         result = await response.json()
                         result_with_date_key = {dt: result}
                         with open(BASE_DIR.joinpath('./data.json'), 'w', encoding='utf-8') as fd:
                             json.dump(result_with_date_key, fd,
-<<<<<<< HEAD
                                       ensure_ascii=False, indent=5)
-=======
-                                        ensure_ascii=False, indent=5)
->>>>>>> e3e301db02e067725daebbf24f21b6765b1e7127
                             fd.write(",\n")
 
                     logging.error(
                         f"Error status {response.status} for {url_request}")
 
-<<<<<<< HEAD
-                except aiohttp.ClientConnectorError as e:
-                    logging.error(f"Connection error {url_request}: {e}")
-        return result
-=======
             except aiohttp.ClientConnectorError as e:
                 logging.error(f"Connection error {url_request}: {e}")
->>>>>>> e3e301db02e067725daebbf24f21b6765b1e7127
     await session.close()
     return result
 
 for dt in date_list:
-        url_request = url+dt
-        print(url_request)
+    url_request = url+dt
+    print(url_request)
+
 
 async def main():
     try:

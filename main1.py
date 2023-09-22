@@ -20,7 +20,7 @@ def get_date_list(days):
 
 
 async def request_privat(date_list):
-    url = 'https://api.privatbank.ua/p24api/pubinfo?json&date='
+    url = 'https://api.privatbank.ua/p24api/exchange_rates?json'
 
     results = []
 
@@ -38,7 +38,7 @@ async def request_privat(date_list):
                         print('Cookies: ', response.cookies)
                         print(response.ok)
                     result = await response.json()
-                    result_with_date_key = {dt: result}
+                    result_with_date_key = result
                     results.append(result_with_date_key)
             except aiohttp.ClientConnectorError as e:
                 logging.error(f"Connection error {url_request}: {e}")
@@ -53,13 +53,19 @@ async def main():
             dt_list = get_date_list(days)
             results = []
             for result in await asyncio.gather(*[request_privat([dt]) for dt in dt_list]):
+                print(type(result))
                 results.extend(result)
             with open(BASE_DIR.joinpath('./data.json'), 'w', encoding='utf-8') as fd:
                 json.dump(results, fd, ensure_ascii=False, indent=5)
+
         else:
             print('You can use a maximum of 10 days')
     except ValueError:
         sys.exit(1)
+    # with open('./data.json', 'r') as f:
+    #     d = json.load(f)
+
+    #     print(d)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
