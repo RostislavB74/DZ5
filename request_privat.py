@@ -60,6 +60,7 @@ async def main_request(*argv):
             print('You can use a maximum of 10 days')
     except ValueError:
         sys.exit(1)
+    return 'ok'
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
