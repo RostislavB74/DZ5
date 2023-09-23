@@ -5,7 +5,7 @@ import pathlib
 import aiohttp
 import sys
 from datetime import date, timedelta
-from tqdm import tqdm, tqdm_gui, trange
+from tqdm import tqdm
 
 TODAY = date.today()
 BASE_DIR = pathlib.Path()
@@ -22,9 +22,7 @@ def get_date_list(days):
 
 async def request_privat(date_list):
     url = 'https://api.privatbank.ua/p24api/exchange_rates?json'
-
     results = []
-
     async with aiohttp.ClientSession() as session:
         for dt in tqdm(date_list, desc='request course by date', unit=' current value'):
             url_request = f'{url}&date={dt}'
@@ -47,14 +45,13 @@ async def request_privat(date_list):
     return results
 
 
-async def main():
+async def main_request(*argv):
     try:
         days = int(sys.argv[1])
         if days <= 10:
             dt_list = get_date_list(days)
             results = []
             for result in await asyncio.gather(*[request_privat([dt]) for dt in dt_list]):
-                # print(type(result))
                 results.extend(result)
             with open(BASE_DIR.joinpath('./data.json'), 'w', encoding='utf-8') as fd:
                 json.dump(results, fd, ensure_ascii=False, indent=5)
@@ -63,12 +60,8 @@ async def main():
             print('You can use a maximum of 10 days')
     except ValueError:
         sys.exit(1)
-    # with open('./data.json', 'r') as f:
-    #     d = json.load(f)
-
-    #     print(d)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
                         format="%(threadName)s %(message)s")
-    asyncio.run(main())
+    asyncio.run(main_request())
