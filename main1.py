@@ -26,7 +26,7 @@ async def request_privat(date_list):
     results = []
 
     async with aiohttp.ClientSession() as session:
-        for dt in tqdm(date_list):
+        for dt in tqdm(date_list, desc='request course by date', unit=' current value'):
             url_request = f'{url}&date={dt}'
             logging.info(f'Starting: {url_request}')
             try:
@@ -54,7 +54,7 @@ async def main():
             dt_list = get_date_list(days)
             results = []
             for result in await asyncio.gather(*[request_privat([dt]) for dt in dt_list]):
-                print(type(result))
+                # print(type(result))
                 results.extend(result)
             with open(BASE_DIR.joinpath('./data.json'), 'w', encoding='utf-8') as fd:
                 json.dump(results, fd, ensure_ascii=False, indent=5)
