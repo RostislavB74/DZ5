@@ -14,6 +14,7 @@ async def main(*argv):
     if request:
         with open(BASE_DIR.joinpath('data.json'), 'r', encoding='utf-8') as f:
             d = json.load(f)
+            # currency_set = set()
             result = []
             for elem in d:
                 for key, value in elem.items():
@@ -22,6 +23,8 @@ async def main(*argv):
                         continue
                 dt_1 = elem.get('exchangeRate')
                 for elem in dt_1:
+                    # currency_set.add(elem.get('currency'))
+
                     if elem.get('currency') == 'EUR':
                         res_eur = {'EUR': {'sale': elem.get(
                             'saleRate'), 'purchase': elem.get('purchaseRate')}}
@@ -33,9 +36,11 @@ async def main(*argv):
                         res_dict.update(res_usd)
                         continue
                 result.append(res_dict)
+                # res_cur = list(currency_set)
             with open(BASE_DIR.joinpath('./cur_exch.json'), 'w', encoding='utf-8') as fd:
                 json.dump(result, fd, ensure_ascii=False, indent=5)
-
+            # with open(BASE_DIR.joinpath('./cur_list.json'), 'w', encoding='utf-8') as fwset:
+            #     json.dump(res_cur, fwset, ensure_ascii=False, indent=5)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
