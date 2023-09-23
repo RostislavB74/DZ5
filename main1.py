@@ -5,6 +5,7 @@ import pathlib
 import aiohttp
 import sys
 from datetime import date, timedelta
+from tqdm import tqdm, tqdm_gui, trange
 
 TODAY = date.today()
 BASE_DIR = pathlib.Path()
@@ -25,7 +26,7 @@ async def request_privat(date_list):
     results = []
 
     async with aiohttp.ClientSession() as session:
-        for dt in date_list:
+        for dt in tqdm(date_list):
             url_request = f'{url}&date={dt}'
             logging.info(f'Starting: {url_request}')
             try:
