@@ -1,7 +1,7 @@
 import logging
 import json
 import pathlib
-from main1 import main_request
+from request_privat import main_request
 import asyncio
 import sys
 
@@ -35,8 +35,6 @@ async def main(*argv):
                 result.append(res_dict)
             with open(BASE_DIR.joinpath('./cur_exch.json'), 'w', encoding='utf-8') as fd:
                 json.dump(result, fd, ensure_ascii=False, indent=5)
-
-            # return result
 
 
 if __name__ == "__main__":
